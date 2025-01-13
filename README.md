@@ -1,7 +1,7 @@
 # **Email Spam Detection Project**
 
 ## **Project Overview**
-This project demonstrates the use of **Machine Learning** and **Natural Language Processing (NLP)** to detect spam emails. The model uses the **Multinomial Naive Bayes** algorithm to classify emails as **spam** or **ham** based on a labeled dataset.
+This Email Spam Detection project is done as an addtional task for my indstruy oriented internship in _**Cothon Solution**_ . This project demonstrates the use of **Machine Learning** and **Natural Language Processing (NLP)** to detect spam emails. The model uses the **Multinomial Naive Bayes** algorithm to classify emails as **spam** or **ham** based on a labeled dataset.
 
 ---
 
