@@ -1,0 +1,100 @@
+## code 
+
+# Import necessary libraries 
+import pandas as pd 
+import numpy as np 
+import re 
+import nltk 
+from sklearn.model_selection import train_test_split 
+from sklearn.feature_extraction.text import TfidfVectorizer 
+from sklearn.naive_bayes import MultinomialNB 
+from sklearn.metrics import classification_report, confusion_matrix, 
+accuracy_score 
+import matplotlib.pyplot as plt 
+import seaborn as sns 
+ 
+# Mount Google Drive 
+from google.colab import drive 
+drive.mount('/content/drive') 
+ 
+# Load the dataset 
+file_path = '/content/drive/MyDrive/spam.csv' 
+data = pd.read_csv(file_path, encoding='latin-1') 
+ 
+# Inspect dataset structure 
+print("Columns in the dataset:") 
+print(data.columns) 
+print("First few rows of the dataset:") 
+print(data.head()) 
+ 
+# Cleaning up the dataset 
+# Handle different dataset structures 
+if 'v1' in data.columns and 'v2' in data.columns: 
+    data = data.rename(columns={'v1': 'Label', 'v2': 'Message'}) 
+elif data.shape[1] >= 2: 
+    data = data.iloc[:, :2]  # Retain only the first two columns 
+    data.columns = ['Label', 'Message'] 
+else: 
+    raise ValueError("Unexpected dataset structure. Please verify the file.") 
+ 
+# Encode the labels: 'spam' -> 1, 'ham' -> 0 
+data['Label'] = data['Label'].map({'ham': 0, 'spam': 1}) 
+ 
+# Check for missing values 
+print("\nChecking for missing values:") 
+print(data.isnull().sum()) 
+ 
+# Data Preprocessing 
+nltk.download('stopwords') 
+from nltk.corpus import stopwords 
+ 
+def preprocess_text(text): 
+    # Remove special characters and numbers 
+    text = re.sub(r'[^a-zA-Z]', ' ', text) 
+    # Convert to lowercase 
+    text = text.lower() 
+    # Tokenize and remove stopwords 
+    stop_words = set(stopwords.words('english')) 
+    words = text.split() 
+    words = [word for word in words if word not in stop_words] 
+    return ' '.join(words) 
+ 
+# Apply preprocessing 
+data['Processed_Message'] = data['Message'].apply(preprocess_text) 
+ 
+# Splitting the dataset 
+X = data['Processed_Message'] 
+y = data['Label'] 
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42) 
+ 
+# Feature Extraction using TF-IDF 
+tfidf_vectorizer = TfidfVectorizer(max_features=5000) 
+X_train_tfidf = tfidf_vectorizer.fit_transform(X_train) 
+X_test_tfidf = tfidf_vectorizer.transform(X_test) 
+ 
+# Train the model 
+model = MultinomialNB() 
+model.fit(X_train_tfidf, y_train) 
+ 
+# Predictions 
+y_pred = model.predict(X_test_tfidf) 
+ 
+# Model Evaluation 
+print("\nAccuracy:", accuracy_score(y_test, y_pred)) 
+print("\nClassification Report:") 
+print(classification_report(y_test, y_pred)) 
+print("\nConfusion Matrix:") 
+conf_matrix = confusion_matrix(y_test, y_pred) 
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', 
+xticklabels=['Ham', 'Spam'], yticklabels=['Ham', 'Spam']) 
+plt.xlabel('Predicted') 
+plt.ylabel('Actual') 
+plt.title('Confusion Matrix') 
+plt.show() 
+ 
+# Test with a sample email 
+sample_message = ["Congratulations! You've won a $1000 gift card. Click 
+here to claim."] 
+sample_tfidf = tfidf_vectorizer.transform(sample_message) 
+sample_pred = model.predict(sample_tfidf) 
+print("\nSample Message Prediction:", "Spam" if sample_pred[0] == 1 else "Ham")
